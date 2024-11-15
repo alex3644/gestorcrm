@@ -1,0 +1,586 @@
+<html><head><base href=""><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sistema CRM</title>
+<style>
+:root {
+  --primary: #2c3e50;
+  --secondary: #34495e;
+  --accent: #3498db;
+  --light: #ecf0f1;
+  --success: #27ae60;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+  background: #f5f6fa;
+}
+
+.navbar {
+  background: var(--primary);
+  padding: 1rem;
+  color: white;
+}
+
+.container {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  min-height: calc(100vh - 60px);
+}
+
+.sidebar {
+  background: var(--secondary);
+  color: white;
+  padding: 1rem;
+}
+
+.sidebar ul {
+  list-style: none;
+}
+
+.sidebar li {
+  padding: 0.8rem;
+  cursor: pointer;
+  transition: 0.3s;
+  border-radius: 4px;
+}
+
+.sidebar li:hover {
+  background: var(--accent);
+}
+
+.main-content {
+  padding: 2rem;
+}
+
+.search-bar {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 2rem;
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.card {
+  padding: 1.5rem;
+  border-radius: 15px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:nth-child(1) { background: linear-gradient(135deg, #3498db, #2980b9); }
+.card:nth-child(2) { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+.card:nth-child(3) { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+.card:nth-child(4) { background: linear-gradient(135deg, #f1c40f, #f39c12); }
+.card:nth-child(5) { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+}
+
+.stat {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 0.8rem;
+}
+
+.customer-form {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  display: none;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.form-group input, .form-group textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: var(--primary);
+}
+
+.customer-list {
+  margin-top: 2rem;
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  display: none;
+}
+
+.customer-item {
+  padding: 1rem;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <h1>CRM System</h1>
+</nav>
+
+<div class="container">
+  <div class="sidebar">
+    <ul>
+      <li onclick="showDashboard()">Dashboard</li>
+      <li onclick="showCustomerForm()">Novo Cliente</li>
+      <li onclick="showCustomerList()">Lista de Clientes</li>
+      <li onclick="showMarketing()">Campanhas de Marketing</li>
+      <li onclick="showReports()">Relatórios</li>
+      <li onclick="showSettings()">Configurações</li>
+      <li onclick="showSales()">Vendas do Mês</li>
+    </ul>
+  </div>
+
+  <div class="main-content">
+    <input type="text" class="search-bar" placeholder="Pesquisar clientes..." oninput="searchCustomers(this.value)">
+    
+    <div id="dashboard" class="dashboard" style="display: grid;">
+    <div class="card">
+      <div class="stat">2</div>
+      <div>👥 Total de Clientes</div>
+    </div>
+    <div class="card">
+      <div class="stat">1</div>
+      <div>🎯 Leads Ativos</div>
+    </div>
+    <div class="card">
+      <div class="stat">R$ 45.2k</div>
+      <div>💰 Vendas do Mês</div>
+    </div>
+    <div class="card">
+      <div class="stat">1%</div>
+      <div>📈 Taxa de Conversão</div>
+    </div>
+    <div class="card">
+      <div class="stat">0</div>
+      <div>📣 Campanhas Ativas</div>
+    </div>
+    <div class="card" style="grid-column: 1 / -1">
+      <h3>📊 Campanhas de Marketing Recentes</h3>
+      <div id="campaignsList">
+        <p>Nenhuma campanha cadastrada</p>
+      </div>
+    </div>
+  </div>
+
+    <div id="customerForm" class="customer-form" style="display: none;">
+      <h2>Novo Cliente</h2>
+      <form onsubmit="saveCustomer(event)">
+        <div class="form-group">
+          <label>Nome</label>
+          <input type="text" id="name" required="">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="email" required="">
+        </div>
+        <div class="form-group">
+          <label>Telefone</label>
+          <input type="tel" id="phone" required="">
+        </div>
+        <div class="form-group">
+          <label>Empresa</label>
+          <input type="text" id="company">
+        </div>
+        <div class="form-group">
+          <label>Observações</label>
+          <textarea id="notes"></textarea>
+        </div>
+        <button type="submit">Salvar Cliente</button>
+      </form>
+    </div>
+
+    <div id="customerList" class="customer-list" style="display: none;">
+      <h2>Lista de Clientes</h2>
+      <div id="customerListContent"></div>
+    </div>
+
+    <div id="marketing" class="card" style="display: none;">
+      <h2>Campanhas de Marketing</h2>
+      <div class="form-group">
+        <label>Nome da Campanha</label>
+        <input type="text" id="campaignName">
+      </div>
+      <div class="form-group">
+        <label>Data de Início</label>
+        <input type="date" id="startDate">
+      </div>
+      <div class="form-group">
+        <label>Data de Término</label>
+        <input type="date" id="endDate">
+      </div>
+      <div class="form-group">
+        <label>Descrição</label>
+        <textarea id="campaignDescription"></textarea>
+      </div>
+      <button onclick="saveCampaign()">Criar Campanha</button>
+    </div>
+
+    <div id="reports" class="card" style="display: none;">
+      <!-- Content will be populated by showReports() -->
+    </div>
+
+    <div id="settings" class="card" style="display: none;">
+      <h2>Configurações</h2>
+      <div class="form-group">
+        <label>Nome da Empresa</label>
+        <input type="text" value="Minha Empresa">
+      </div>
+      <div class="form-group">
+        <label>Email de Contato</label>
+        <input type="email" value="contato@minhaempresa.com">
+      </div>
+      <div class="form-group">
+        <label>Tema</label>
+        <select>
+          <option>Claro</option>
+          <option>Escuro</option>
+        </select>
+      </div>
+      <button>Salvar Configurações</button>
+    </div>
+
+    <div id="sales" class="card" style="display: none;">
+      <h2>Vendas do Mês</h2>
+      
+      <div class="form-group">
+        <h3>Nova Venda</h3>
+        <label>Valor da Venda (R$)</label>
+        <input type="number" id="saleAmount" required="">
+      </div>
+      <div class="form-group">
+        <label>Vendedor</label>
+        <input type="text" id="salesperson" required="">
+      </div>
+      <div class="form-group">
+        <label>Data da Venda</label>
+        <input type="date" id="saleDate" required="">
+      </div>
+      <div class="form-group">
+        <label>Cliente</label>
+        <input type="text" id="saleCustomer" required="">
+      </div>
+      <div class="form-group">
+        <label>Descrição da Venda</label>
+        <textarea id="saleDescription" required=""></textarea>
+      </div>
+      <button onclick="addNewSale()">Registrar Venda</button>
+
+      <hr style="margin: 2rem 0;">
+      
+      <h3>Histórico de Vendas</h3>
+      <div id="salesHistory"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let customers = [
+  {
+    id: 1,
+    name: "João Silva",
+    email: "joao@email.com",
+    phone: "(11) 99999-9999",
+    company: "Tech Solutions",
+    notes: "Cliente Premium"
+  },
+  {
+    id: 2,
+    name: "Maria Santos",
+    email: "maria@email.com",
+    phone: "(11) 88888-8888",
+    company: "Digital Services",
+    notes: "Novo cliente"
+  }
+];
+
+let campaigns = [];
+let totalSales = 45200; // R$ 45.2k
+let salesHistory = [];
+
+function updateDashboardStats() {
+  document.querySelector('.dashboard').innerHTML = `
+    <div class="card">
+      <div class="stat">${customers.length}</div>
+      <div>👥 Total de Clientes</div>
+    </div>
+    <div class="card">
+      <div class="stat">${Math.round(customers.length * 0.35)}</div>
+      <div>🎯 Leads Ativos</div>
+    </div>
+    <div class="card">
+      <div class="stat">R$ ${(totalSales/1000).toFixed(1)}k</div>
+      <div>💰 Vendas do Mês</div>
+    </div>
+    <div class="card">
+      <div class="stat">${Math.round((customers.length/142) * 100)}%</div>
+      <div>📈 Taxa de Conversão</div>
+    </div>
+    <div class="card">
+      <div class="stat">${campaigns.length}</div>
+      <div>📣 Campanhas Ativas</div>
+    </div>
+    <div class="card" style="grid-column: 1 / -1">
+      <h3>📊 Campanhas de Marketing Recentes</h3>
+      <div id="campaignsList">
+        ${campaigns.map(campaign => `
+          <div>
+            <strong>${campaign.name}</strong>
+            <div>📅 Período: ${campaign.startDate} - ${campaign.endDate}</div>
+            <div>📝 ${campaign.description}</div>
+          </div>
+        `).join('') || '<p>Nenhuma campanha cadastrada</p>'}
+      </div>
+    </div>
+  `;
+}
+
+function showDashboard() {
+  hideAllSections();
+  document.getElementById('dashboard').style.display = 'grid';
+  updateDashboardStats();
+}
+
+function showCustomerForm() {
+  hideAllSections();
+  document.getElementById('customerForm').style.display = 'block';
+}
+
+function showCustomerList() {
+  hideAllSections();
+  document.getElementById('customerList').style.display = 'block';
+  renderCustomerList(customers);
+}
+
+function showMarketing() {
+  hideAllSections();
+  document.getElementById('marketing').style.display = 'block';
+}
+
+function showReports() {
+  hideAllSections();
+  document.getElementById('reports').style.display = 'block';
+  
+  document.getElementById('reports').innerHTML = `
+    <h2>Relatórios</h2>
+    <div class="dashboard">
+      <div class="card">
+        <h3>Vendas Mensais</h3>
+        <div class="stat">R$ ${(totalSales/1000).toFixed(1)}k</div>
+      </div>
+      <div class="card">
+        <h3>Clientes Novos</h3>
+        <div class="stat">+${customers.length}</div>
+      </div>
+    </div>
+  `;
+}
+
+function showSettings() {
+  hideAllSections();
+  document.getElementById('settings').style.display = 'block';
+}
+
+function showSales() {
+  hideAllSections();
+  document.getElementById('sales').style.display = 'block';
+  renderSalesHistory();
+}
+
+function addNewSale() {
+  const newSale = {
+    id: Date.now(),
+    amount: parseFloat(document.getElementById('saleAmount').value),
+    salesperson: document.getElementById('salesperson').value,
+    date: document.getElementById('saleDate').value,
+    customer: document.getElementById('saleCustomer').value,
+    description: document.getElementById('saleDescription').value
+  };
+
+  if (!newSale.amount || !newSale.salesperson || !newSale.date || !newSale.customer) {
+    alert('Por favor, preencha todos os campos obrigatórios.');
+    return;
+  }
+
+  salesHistory.push(newSale);
+  totalSales = salesHistory.reduce((sum, sale) => sum + sale.amount, 0);
+  
+  updateDashboardStats();
+  renderSalesHistory();
+  alert('Venda registrada com sucesso!');
+  
+  document.getElementById('saleAmount').value = '';
+  document.getElementById('salesperson').value = '';
+  document.getElementById('saleDate').value = '';
+  document.getElementById('saleCustomer').value = '';
+  document.getElementById('saleDescription').value = '';
+}
+
+function renderSalesHistory() {
+  const container = document.getElementById('salesHistory');
+  container.innerHTML = salesHistory
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .map(sale => `
+      <div class="customer-item">
+        <div>
+          <h4>R$ ${sale.amount.toFixed(2)}</h4>
+          <p><strong>Vendedor:</strong> ${sale.salesperson}</p>
+          <p><strong>Data:</strong> ${new Date(sale.date).toLocaleDateString()}</p>
+          <p><strong>Cliente:</strong> ${sale.customer}</p>
+          <p><strong>Descrição:</strong> ${sale.description}</p>
+        </div>
+        <button onclick="deleteSale(${sale.id})" style="background: #e74c3c;">Excluir</button>
+      </div>
+    `)
+    .join('');
+}
+
+function deleteSale(id) {
+  if (confirm('Tem certeza que deseja excluir esta venda?')) {
+    salesHistory = salesHistory.filter(sale => sale.id !== id);
+    totalSales = salesHistory.reduce((sum, sale) => sum + sale.amount, 0);
+    updateDashboardStats();
+    renderSalesHistory();
+  }
+}
+
+function saveCampaign() {
+  const campaign = {
+    name: document.getElementById('campaignName').value,
+    startDate: document.getElementById('startDate').value,
+    endDate: document.getElementById('endDate').value,
+    description: document.getElementById('campaignDescription').value
+  };
+  campaigns.push(campaign);
+  alert('Campanha criada com sucesso!');
+  updateDashboardStats();
+}
+
+function saveCustomer(event) {
+  event.preventDefault();
+  
+  const newCustomer = {
+    id: customers.length + 1,
+    name: document.getElementById('name').value,
+    email: document.getElementById('email').value,
+    phone: document.getElementById('phone').value,
+    company: document.getElementById('company').value,
+    notes: document.getElementById('notes').value
+  };
+
+  customers.push(newCustomer);
+  event.target.reset();
+  alert('Cliente salvo com sucesso!');
+  updateDashboardStats();
+  showCustomerList();
+}
+
+function deleteCustomer(id) {
+  if (confirm('Tem certeza que deseja excluir este cliente?')) {
+    customers = customers.filter(c => c.id !== id);
+    renderCustomerList(customers);
+    updateDashboardStats();
+  }
+}
+
+function hideAllSections() {
+  const sections = ['dashboard', 'customerForm', 'customerList', 'marketing', 'reports', 'settings', 'sales'];
+  sections.forEach(section => {
+    document.getElementById(section).style.display = 'none';
+  });
+}
+
+function renderCustomerList(customerArray) {
+  const container = document.getElementById('customerListContent');
+  container.innerHTML = '';
+  
+  customerArray.forEach(customer => {
+    const div = document.createElement('div');
+    div.className = 'customer-item';
+    div.innerHTML = `
+      <div>
+        <h3>${customer.name}</h3>
+        <p>${customer.email} | ${customer.phone}</p>
+        <p>${customer.company}</p>
+      </div>
+      <div>
+        <button onclick="editCustomer(${customer.id})">Editar</button>
+        <button onclick="deleteCustomer(${customer.id})" style="background: #e74c3c;">Excluir</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function searchCustomers(query) {
+  const filteredCustomers = customers.filter(customer => 
+    customer.name.toLowerCase().includes(query.toLowerCase()) ||
+    customer.email.toLowerCase().includes(query.toLowerCase()) ||
+    customer.company.toLowerCase().includes(query.toLowerCase())
+  );
+  renderCustomerList(filteredCustomers);
+}
+
+function editCustomer(id) {
+  const customer = customers.find(c => c.id === id);
+  if (customer) {
+    document.getElementById('name').value = customer.name;
+    document.getElementById('email').value = customer.email;
+    document.getElementById('phone').value = customer.phone;
+    document.getElementById('company').value = customer.company;
+    document.getElementById('notes').value = customer.notes;
+    showCustomerForm();
+  }
+}
+
+function updateSales() {
+  const newSales = parseFloat(document.getElementById('totalSalesInput').value);
+  if (!isNaN(newSales)) {
+    totalSales = newSales;
+    updateDashboardStats();
+    alert('Vendas atualizadas com sucesso!');
+  }
+}
+
+// Inicializar mostrando o dashboard
+showDashboard();
+</script>
+
+</body></html>
